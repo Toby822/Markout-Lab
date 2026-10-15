@@ -2,7 +2,7 @@
 
 ### A market microstructure research terminal
 
-**[Launch the interactive research app](https://toby822.github.io/Markout-Lab/)** (the new GitHub Pages deployment may require initial activation in repository Settings → Pages)
+**[Launch the interactive research app](https://toby822.github.io/Markout-Lab/)** · [View the mathematical methodology](research/METHODS.md) · [GitHub Actions tests](https://github.com/Toby822/Markout-Lab/actions)
 
 Markout Lab is a browser-based, event-driven synthetic market-making simulator. It evaluates **fixed-spread, inventory-skewed and observed-flow-aware quoting** on the same market tapes, then shows how spread capture can be offset by adverse selection and inventory losses.
 
