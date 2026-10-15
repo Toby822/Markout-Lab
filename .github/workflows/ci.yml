@@ -1,0 +1,37 @@
+name: Validate Markout Lab
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  model-and-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test library
+        run: npm install --no-save --ignore-scripts playwright-core@1.56.1
+      - name: Test deterministic Monte Carlo and model accounting
+        run: |
+          node --check sim.js
+          node --check app.js
+          node tests/test-sim.cjs
+      - name: Chromium end-to-end desktop and mobile
+        run: node tests/e2e.cjs
+      - name: Upload QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: markout-lab-qa
+          path: |
+            /tmp/markout-desktop.png
+            /tmp/markout-mobile.png
+          if-no-files-found: ignore
