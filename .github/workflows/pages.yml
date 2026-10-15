@@ -1,0 +1,68 @@
+name: Publish Markout Lab
+on:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - sim.js
+      - app.js
+      - style.css
+      - favicon.svg
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate source and numerical model
+        run: |
+          set -euo pipefail
+          node --check sim.js
+          node --check app.js
+          node tests/test-sim.cjs
+      - name: Prepare static website
+        run: |
+          mkdir _site
+          cp index.html sim.js app.js style.css favicon.svg _site/
+          touch _site/.nojekyll
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Deploy site
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Verify public URL
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://toby822.github.io/Markout-Lab/"
+          for attempt in $(seq 1 14); do
+            if curl -fsSL --max-time 15 "$URL" -o /tmp/markout-public.html && grep -q 'MARKOUT LAB' /tmp/markout-public.html; then
+              break
+            fi
+            sleep 3
+          done
+          grep -q 'MARKOUT LAB' /tmp/markout-public.html
+          for asset in sim.js app.js style.css; do
+            curl -fsSL --max-time 15 "$URL$asset" -o /dev/null
+          done
+          echo "Public standalone Markout Lab verified at $URL"
